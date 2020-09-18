@@ -1,9 +1,9 @@
 import pickle
 import re
 
-from keras.models import load_model
-from keras.preprocessing import sequence
-from keras.preprocessing.text import Tokenizer
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing import sequence
+from tensorflow.keras.preprocessing.text import Tokenizer
 from collections import OrderedDict
 import sys
 import os

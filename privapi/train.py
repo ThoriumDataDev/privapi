@@ -1,12 +1,12 @@
 import pickle
 
-from keras.models import Sequential
-from keras.layers import LSTM, Dense, Dropout
-from keras.layers.embeddings import Embedding
-from keras.preprocessing import sequence
-from keras.preprocessing.text import Tokenizer
-from keras import backend
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense, Dropout, Embedding
+from tensorflow.keras.preprocessing import sequence
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras import backend as K
 from collections import OrderedDict
+import numpy as np
 import os
 import json
 import pandas
@@ -16,7 +16,7 @@ def train(csv_file, out_folder):
     print("Preparing training dataset...")
     dataframe = pandas.read_csv(csv_file, engine='python', quotechar='|', header=None)
     dataset = dataframe.sample(frac=1).values
-
+    
     # Preprocess dataset
     X = dataset[:,0]
     Y = dataset[:,1]
@@ -53,8 +53,8 @@ def train(csv_file, out_folder):
     train_size = int(len(dataset) * .75)
 
     X_processed = sequence.pad_sequences(X, maxlen=max_payload_length)
-    X_train, X_test = X_processed[0:train_size], X_processed[train_size:len(X_processed)]
-    Y_train, Y_test = Y[0:train_size], Y[train_size:len(Y)]
+    X_train, X_test = np.array(X_processed[0:train_size], dtype=np.float), np.array(X_processed[train_size:len(X_processed)], dtype=np.float)
+    Y_train, Y_test = np.array(Y[0:train_size], dtype=np.float), np.array(Y[train_size:len(Y)], dtype=np.float)
 
     print("Training dataset ready.")
     model = Sequential()
@@ -68,12 +68,11 @@ def train(csv_file, out_folder):
     model.add(Dense(1, activation='sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     print(model.summary())
-    model.fit(X_train, Y_train, validation_split=0.25, epochs=60, batch_size=128)
-
+    model.fit(X_train, Y_train, validation_split=0.25, epochs=1, batch_size=128)
     score, acc = model.evaluate(X_test, Y_test, verbose=1, batch_size=128)
 
     print("Model Accuracy: {:0.2f}%".format(acc * 100))
-
+    
     # Save model
     model.save_weights('%s/privapi-lstm-weights.h5' % out_folder)
     model.save('%s/privapi-lstm-model.h5' % out_folder)
@@ -100,10 +99,10 @@ if __name__ == '__main__':
     else:
         basedir = os.path.join(os.path.dirname(__file__), os.pardir)
         out_folder = '%s/out' % basedir
-
+    
     has_gpu = None
-    if len(backend.tensorflow_backend._get_available_gpus()) > 0:
-        from keras.layers import CuDNNLSTM
-        has_gpu = True
+ #   if len(K._get_available_gpus()) > 0:
+ #       from keras.layers import CuDNNLSTM
+ #       has_gpu = True
 
     train(csv_file, out_folder)

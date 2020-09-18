@@ -1,0 +1,3 @@
+payload_file,is_sensitive,probability
+magento.json,1,0.67659795
+slack.json,1,0.5091198
